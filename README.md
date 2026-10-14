@@ -1,2 +1,2 @@
 # Programming
-Programming homework, MIG IV-1
+Programming homework, MIG, IV-1
