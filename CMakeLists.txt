@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 4)
-project(Programming4_AP)
+project(prog-4_AP)
 
 set(CMAKE_CXX_STANDARD 20)
 
