@@ -7,7 +7,7 @@ int main() {
     //actual short strings, saved directly in the SSOString object
     SSOString a("Hello");
     SSOString b(", World!");
-    cout << "a: " << a.data() << " | " << a.size() << " | " << a.cap() << " | " << '\n'
+    cout << "a: " << a.data() << " | " << a.size() << " | " << a.cap() << '\n'
     << "b: " << b << " | " << b.size() << " | " << b.cap() << '\n';
 
     //concatenate

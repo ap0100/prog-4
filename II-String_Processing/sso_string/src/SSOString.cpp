@@ -1,15 +1,17 @@
 #include "../include/SSOString.h"
 #include <iostream>
+#include <cstdint>
 using namespace std;
 
-static int strlen(const char *s) {
-    int len=0;
+static uint16_t strlen(const char *s) {
+    if (!s) return 0;
+    uint16_t len=0;
     while (s[len]!='\0') len++;
     return len;
 }
 
 static void strcpy(char *dst, const char *src) {
-    int index=0;
+    uint16_t index=0;
     while (src[index]!='\0') {
         dst[index]=src[index];
         index++;
@@ -18,9 +20,8 @@ static void strcpy(char *dst, const char *src) {
 }
 
 SSOString::SSOString() {
-    this->_size = 0;
-    this->_cap = 15;
-    this->txt[0] = '\0';
+    this->sso_flag=1;
+    this->txt[0]='\0';
 }
 
 SSOString::~SSOString() {
@@ -28,53 +29,53 @@ SSOString::~SSOString() {
 }
 
 SSOString::SSOString(const char *str) {
-    int len=strlen(str);
-    this->_size=len;
+    uint16_t len=strlen(str);
 
-    if (len<=15) {
-        this->_cap=15;
-        strcpy(this->txt,str);
+    if (len<=14) {
+        this->sso_flag=len*2+1;
+        if (str) strcpy(this->txt,str);
+        else this->txt[0]='\0';
     }else {
-        this->_cap=len;
-        this->arr=new char[this->_cap+1];
+        this->arr=new char[len+1];
         strcpy(this->arr,str);
+        this->_size=len;
+        this->_cap=len;
     }
 }
 
 void SSOString::copy(const SSOString &og) {
-    this->_size=og._size;
-
     if (og.isSSO()) {
-        this->_cap=15;
+        this->sso_flag=1;
         strcpy(this->txt,og.txt);
     }else {
+        this->_size=og._size;
         this->_cap=og._cap;
         this->arr=new char[this->_cap+1];
         strcpy(this->arr,og.arr);
     }
 }
 
-SSOString::SSOString(const SSOString &og) { this->copy(og); }
+SSOString::SSOString(const SSOString& og) { this->copy(og); }
 
 SSOString& SSOString::operator=(const SSOString &og) {
     if (this!=&og) {
-        if (!isSSO()) delete [] this->arr;
+        if (!this->isSSO()) delete [] this->arr;
         this->copy(og);
     }
     return *this;
 }
 
-short SSOString::size() const { return this->_size; }
+bool SSOString::isSSO() const { return this->sso_flag%2==1; }
 
-short SSOString::cap() const { return this->_cap; }
+uint16_t SSOString::size() const { return this->isSSO() ? (this->sso_flag/2) : this->_size; }
 
-bool SSOString::isSSO() const { return this->_cap<=15; }
+uint16_t SSOString::cap() const { return this->isSSO() ? 14 : this->_cap; }
 
-const char* SSOString::data() const { return !isSSO() ? this->arr : this->txt; }
-char* SSOString::data() { return !isSSO() ? this->arr : this->txt; }
+const char* SSOString::data() const { return !this->isSSO() ? this->arr : this->txt; }
+char* SSOString::data() { return !this->isSSO() ? this->arr : this->txt; }
 
-char& SSOString::operator[](short index) { return this->data()[index]; }
-char SSOString::operator[](short index) const { return this->data()[index]; }
+char& SSOString::operator[](uint16_t index) { return this->data()[index]; }
+char SSOString::operator[](uint16_t index) const { return this->data()[index]; }
 
 ostream& operator<<(ostream &o, const SSOString &s) {
     o << s.data();
@@ -83,19 +84,18 @@ ostream& operator<<(ostream &o, const SSOString &s) {
 
 SSOString operator+(const SSOString &a, const SSOString &b) {
     SSOString c;
-    int size=a.size()+b.size();
+    uint16_t len=a.size()+b.size();
 
-    if (size<=15) {
+    if (len<=14) {
+        c.sso_flag=static_cast<uint8_t>((len<<1)|1);
         strcpy(c.txt,a.data());
-        strcpy(c.txt,b.data());
-        c._size=size;
-        c._cap=15;
+        strcpy(c.txt+a.size(),b.data());
         return c;
     }
-    c.arr=new char[size+1];
+    c.arr=new char[len+1];
     strcpy(c.arr,a.data());
-    strcpy(c.arr,b.data());
-    c._size=size;
-    c._cap=size;
+    strcpy(c.arr+a.size(),b.data());
+    c._size=len;
+    c._cap=len;
     return c;
 }
