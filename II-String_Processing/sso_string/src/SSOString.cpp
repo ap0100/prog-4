@@ -45,7 +45,7 @@ SSOString::SSOString(const char *str) {
 
 void SSOString::copy(const SSOString &og) {
     if (og.isSSO()) {
-        this->sso_flag=1;
+        this->sso_flag=og.sso_flag;
         strcpy(this->txt,og.txt);
     }else {
         this->_size=og._size;
